@@ -260,7 +260,12 @@
           <Navbar currentView={currentView} setView={setView} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
           <main className="pt-16">
-            {currentView === "home" && !searchQuery && <Hero featuredShow={featured} onPlay={setSelectedShow} />}
+             {currentView === "home" && !searchQuery && (
+  <div className="relative z-20 pb-32"> 
+    <Hero featuredShow={featured} onPlay={setSelectedShow} />
+  </div>
+)}
+
 
             <div className={"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 " + (currentView==="home" && !searchQuery ? "mt-[-80px] relative z-10" : "pt-8")}>
               <div className="flex items-center justify-between mb-6">
@@ -300,5 +305,6 @@
   </script>
 </body>
 </html>
+
 
 
