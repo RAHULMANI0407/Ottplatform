@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Doraemon Ever Tamil — Single File</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body { background-color:#020617; color:white; }
+    /* small animations used in components */
+    @keyframes fadeInUp { from {opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+    .animate-fade-in-up { animation: .45s fadeInUp ease both; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React UMD -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <!-- Babel to allow JSX in-browser (dev only) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- App (JSX; transpiled by Babel) -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    /* ---------- sample data ---------- */
+    const shows = [
+      {
+        id: "1",
+        title: "Doraemon Stand By Me",
+        description: "Nobita and friends embark on a sky island adventure with Doraemon's gadgets.",
+        category: "Movie",
+        posterUrl: "https://res.cloudinary.com/duj55eee1/image/upload/v1765534488/Stand_by_Me_Doraemon_2014_manmpo.jpg",
+        bannerUrl: "https://res.cloudinary.com/duj55eee1/image/upload/v1765534488/Stand_by_Me_Doraemon_2014_manmpo.jpg",
+        runtime: "1h 36m",
+        rating: "7.8",
+        videoSource: { type: "youtube", src: "dQw4w9WgXcQ" }
+      },
+      {
+        id: "2",
+        title: "Doraemon Episode 42",
+        description: "A funny short where Doraemon helps Nobita with a test.",
+        category: "Series",
+        posterUrl: "https://res.cloudinary.com/duj55eee1/image/upload/v1765534488/Stand_by_Me_Doraemon_2014_manmpo.jpg",
+        bannerUrl: "https://res.cloudinary.com/duj55eee1/image/upload/v1765534488/Stand_by_Me_Doraemon_2014_manmpo.jpg",
+        runtime: "22m",
+        rating: "8.2",
+        videoSource: { type: "mp4", src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" }
+      }
+    ];
+
+    /* ---------- small icon components (SVG) ---------- */
+    const IconPlayCircle = ({ className="" }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" width="28" height="28" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.6"/><path d="M10 8l6 4-6 4V8z" fill="currentColor"/></svg>
+    );
+    const IconPlay = ({ className="" }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><path d="M5 3v18l15-9L5 3z" fill="currentColor"/></svg>
+    );
+    const IconSearch = ({ className="" }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/><circle cx="11" cy="11" r="6" stroke="currentColor" strokeWidth="1.6"/></svg>
+    );
+    const IconX = ({ className="" }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+    );
+
+    /* ---------- Navbar ---------- */
+    function Navbar({ currentView, setView, searchQuery, setSearchQuery }) {
+      const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+      const [isSearchOpen, setIsSearchOpen] = useState(false);
+      const [localSearch, setLocalSearch] = useState(searchQuery);
+
+      useEffect(() => setLocalSearch(searchQuery), [searchQuery]);
+      useEffect(() => {
+        const t = setTimeout(() => setSearchQuery(localSearch), 250);
+        return () => clearTimeout(t);
+      }, [localSearch, setSearchQuery]);
+
+      const navItems = [
+        { label: "Home", value: "home" },
+        { label: "Movies", value: "movies" },
+        { label: "Series", value: "series" }
+      ];
+
+      return (
+        <nav className="fixed top-0 w-full z-40 bg-slate-900/80 backdrop-blur-md border-b border-white/10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div onClick={() => setView("home")} className="flex items-center gap-2 cursor-pointer">
+                <IconPlayCircle className="text-indigo-400" />
+                <span className="font-bold text-xl">Doraemon Ever</span>
+              </div>
+
+              <div className="hidden md:block">
+                <div className="ml-10 flex items-baseline space-x-4">
+                  {navItems.map(it => (
+                    <button key={it.label} onClick={() => setView(it.value)}
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${currentView===it.value ? "text-white bg-white/10" : "text-gray-300 hover:text-white"}`}>
+                      {it.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="hidden md:block">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <IconSearch />
+                  </div>
+                  <input className="block w-64 pl-10 pr-3 py-1.5 rounded-full bg-slate-800 text-gray-300"
+                    placeholder="Titles, genres..."
+                    value={localSearch}
+                    onChange={e => setLocalSearch(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="md:hidden flex items-center gap-2">
+                <button onClick={() => setIsSearchOpen(s => !s)} className="p-2 rounded-md">
+                  <IconSearch />
+                </button>
+                <button onClick={() => setIsMobileMenuOpen(s => !s)} className="p-2 rounded-md">
+                  {isMobileMenuOpen ? <IconX /> : <svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {isSearchOpen && (
+            <div className="md:hidden px-4 pb-4">
+              <input className="block w-full px-4 py-2 rounded-lg bg-slate-800 text-white"
+                placeholder="Search..." value={localSearch}
+                onChange={e => setLocalSearch(e.target.value)} />
+            </div>
+          )}
+
+          {isMobileMenuOpen && (
+            <div className="md:hidden bg-slate-900 border-b border-white/10">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                {navItems.map(it => (
+                  <button key={it.label} onClick={() => { setView(it.value); setIsMobileMenuOpen(false); }}
+                    className={`block w-full text-left px-3 py-2 rounded-md ${currentView===it.value ? "text-white bg-indigo-600" : "text-gray-300"}`}>
+                    {it.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </nav>
+      );
+    }
+
+    /* ---------- Hero ---------- */
+    function Hero({ featuredShow, onPlay }) {
+      return (
+        <div className="relative w-full h-[70vh] md:h-[80vh]">
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${featuredShow.bannerUrl})` }}>
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/40 to-transparent" />
+          </div>
+
+          <div className="relative h-full max-w-7xl mx-auto px-4 flex flex-col justify-end pb-20 md:pb-0">
+            <div className="max-w-2xl space-y-4 animate-fade-in-up">
+              <div className="flex items-center space-x-2 text-sm font-medium text-indigo-400 uppercase tracking-wider">
+                <span>{featuredShow.category}</span><span>•</span><span>{featuredShow.rating}</span><span>•</span><span>{featuredShow.runtime}</span>
+              </div>
+
+              <h1 className="text-3xl md:text-5xl font-extrabold leading-tight">{featuredShow.title}</h1>
+              <p className="text-lg text-gray-300 max-w-xl">{featuredShow.description}</p>
+
+              <div className="pt-4 flex gap-3">
+                <button onClick={() => onPlay(featuredShow)} className="flex items-center gap-2 px-6 py-2 bg-indigo-600 rounded-full">
+                  <IconPlay /> <span>Watch Now</span>
+                </button>
+                <button className="flex items-center gap-2 px-6 py-2 bg-white/10 rounded-full">
+                  <span>More Info</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ---------- ShowCard ---------- */
+    function ShowCard({ show, onPlay }) {
+      return (
+        <div className="group relative bg-slate-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+          <div className="aspect-[2/3] w-full relative overflow-hidden">
+            <img src={show.posterUrl} alt={show.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+              <button onClick={() => onPlay(show)} className="bg-indigo-600 text-white p-3 rounded-full">
+                <IconPlay />
+              </button>
+            </div>
+            <div className="absolute top-2 right-2 bg-black/50 px-2 py-1 rounded text-xs">{show.category}</div>
+          </div>
+          <div className="p-4">
+            <h3 className="text-white font-bold text-lg truncate group-hover:text-indigo-400">{show.title}</h3>
+            <div className="flex items-center justify-between mt-2 text-sm text-gray-400">
+              <span>{show.runtime}</span>
+              <span className="border border-gray-600 px-1 rounded text-xs">{show.rating}</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ---------- VideoModal ---------- */
+    function VideoModal({ show, onClose }) {
+      useEffect(() => {
+        document.body.style.overflow = show ? "hidden" : "unset";
+        return () => (document.body.style.overflow = "unset");
+      }, [show]);
+
+      if (!show) return null;
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+          <div className="relative w-full max-w-4xl aspect-video bg-black rounded-xl overflow-hidden">
+            <button onClick={onClose} className="absolute top-3 right-3 z-20 p-2 bg-black/40 rounded-full text-white">
+              <IconX />
+            </button>
+
+            {show.videoSource.type === "youtube" ? (
+              <iframe className="w-full h-full" src={"https://www.youtube.com/embed/" + show.videoSource.src + "?autoplay=1&modestbranding=1&rel=0"} title={show.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+            ) : (
+              <video className="w-full h-full" src={show.videoSource.src} controls autoPlay controlsList="nodownload">Your browser does not support video tag.</video>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* ---------- Main App ---------- */
+    function App() {
+      const [currentView, setView] = useState("home");
+      const [searchQuery, setSearchQuery] = useState("");
+      const [selectedShow, setSelectedShow] = useState(null);
+
+      const filtered = useMemo(() => {
+        let res = shows;
+        if (currentView === "movies") res = res.filter(s => s.category === "Movie");
+        else if (currentView === "series") res = res.filter(s => s.category === "Series");
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          res = res.filter(s => s.title.toLowerCase().includes(q) || s.category.toLowerCase().includes(q));
+        }
+        return res;
+      }, [currentView, searchQuery]);
+
+      const featured = shows[0];
+
+      return (
+        <div className="min-h-screen pb-20">
+          <Navbar currentView={currentView} setView={setView} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+
+          <main className="pt-16">
+            {currentView === "home" && !searchQuery && <Hero featuredShow={featured} onPlay={setSelectedShow} />}
+
+            <div className={"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 " + (currentView==="home" && !searchQuery ? "mt-[-80px] relative z-10" : "pt-8")}>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">
+                  {searchQuery ? `Search Results for "${searchQuery}"` : currentView === "home" ? "Trending Now" : currentView === "movies" ? "All Movies" : "TV Series"}
+                </h2>
+              </div>
+
+              {filtered.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                  {filtered.map(s => <ShowCard key={s.id} show={s} onPlay={setSelectedShow} />)}
+                </div>
+              ) : (
+                <div className="text-center py-20 text-gray-400">
+                  <p className="text-xl">No content found matching your criteria.</p>
+                  <button onClick={() => { setSearchQuery(""); setView("home"); }} className="mt-4 text-indigo-400 underline">Clear filters</button>
+                </div>
+              )}
+            </div>
+          </main>
+
+          <footer className="bg-slate-900 border-t border-white/5 py-12 mt-12">
+            <div className="max-w-7xl mx-auto px-4 text-center text-gray-500">
+              <p className="mb-2">&copy; 2024 Doraemon Ever. All rights reserved.</p>
+              <p className="text-sm">Watch Tamil Movies & Episodes</p>
+            </div>
+          </footer>
+
+          <VideoModal show={selectedShow} onClose={() => setSelectedShow(null)} />
+        </div>
+      );
+    }
+
+    /* ---------- mount ---------- */
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(React.createElement(App));
+  </script>
+</body>
+</html>
